@@ -4,7 +4,7 @@ const int pinGreen = 12;
 const int pinBlue = 8;
 
 int currentLED = -1;
-int ledPins[] = {pinRed, pinGreen, pinBlue};
+int ledPins[] = {pinRed, pinGreen, pinBlue, -1};
 
 void setup() {
   pinMode(buttonPin, INPUT_PULLUP);
@@ -17,10 +17,7 @@ void loop() {
   if (digitalRead(buttonPin) == LOW) {
     digitalWrite(ledPins[currentLED], LOW);
     currentLED = (currentLED + 1) % (sizeof(ledPins) / sizeof(ledPins[0]));
-
     digitalWrite(ledPins[currentLED], HIGH);
-
-    delay(5000);
     while (digitalRead(buttonPin) == LOW) {}
   }
 }
