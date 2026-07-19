@@ -1,0 +1,51 @@
+name: Arduino Nano Build
+
+on:
+  pull_request:
+    paths:
+      - 'arduino_nano/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+            fetch-depth: 0
+
+      - name: Install Arduino CLI
+        uses: arduino/setup-arduino-cli@v2
+
+      - name: Detect changed sketches
+        id: changed
+        run: |
+            echo "folders=$(git diff --name-only origin/${{ github.base_ref }} HEAD \
+            | grep '^arduino_nano/' \
+            | cut -d/ -f2 \
+            | sort -u \
+            | tr '\n' ' ')" >> $GITHUB_OUTPUT
+
+      - name: Install Arduino AVR platform
+        run: |
+          arduino-cli core update-index
+          arduino-cli core install arduino:avr
+
+      - name: Compile sketch
+        run: |
+          mkdir build
+          for folder in ${{ steps.changed.outputs.folders }}; do
+            echo "Compiling $folder"
+    
+            arduino-cli compile \
+                --fqbn arduino:avr:nano:cpu=atmega328old \
+                --output-dir build/$folder \
+                ./arduino_nano/$folder
+          done
+
+      - name: Upload firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: nano-firmware
+          path: build/**/*.hex
